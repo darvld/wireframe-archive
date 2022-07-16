@@ -1,7 +1,11 @@
 [versions]
+kotlin = "1.7.0"
 ktor = "2.0.3"
 
 [libraries]
+kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.ref = "kotlin" }
+kotlinpoet = { module = "com.squareup:kotlinpoet", version = "1.12.0" }
+
 graphql-java = { module = "com.graphql-java:graphql-java", version = "18.2" }
 
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }

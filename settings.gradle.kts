@@ -1,6 +1,7 @@
 @file:Suppress("UnstableApiUsage", "LocalVariableName")
 
 import org.gradle.api.initialization.resolve.RepositoriesMode.FAIL_ON_PROJECT_REPOS
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
 
 pluginManagement {
     repositories {
@@ -29,3 +30,4 @@ rootProject.name = "graphql-kotlin"
 
 include(":graphql-kotlin-ktor")
 include(":graphql-kotlin-compiler")
+include(":graphql-kotlin-plugin")
