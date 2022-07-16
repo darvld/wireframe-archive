@@ -2,10 +2,11 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
+    id("maven-publish")
 }
 
 dependencies {
-    implementation(libs.graphql.java)
+    api(libs.graphql.java)
 
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.serialization)
@@ -15,6 +16,16 @@ dependencies {
 
 kotlin {
     explicitApi()
+}
+
+java {
+    withSourcesJar()
+}
+
+publishing {
+    publications.create<MavenPublication>("runtime") {
+        from(components["java"])
+    }
 }
 
 tasks.test {
