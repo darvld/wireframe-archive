@@ -4,7 +4,7 @@ import graphql.schema.GraphQLObjectType
 import io.github.darvld.graphql.model.GraphQLOperation
 import io.github.darvld.graphql.model.RouteData
 
-internal fun processAdditionalRoutes(definition: GraphQLObjectType): List<RouteData> = buildList {
+internal fun processExtensionRoutes(definition: GraphQLObjectType): List<RouteData> = buildList {
     val extensionNames = definition.extensionDefinitions.flatMap { extension ->
         extension.fieldDefinitions.map { it.name }
     }

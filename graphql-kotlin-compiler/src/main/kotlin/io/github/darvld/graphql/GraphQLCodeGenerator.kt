@@ -58,28 +58,14 @@ public class GraphQLCodeGenerator {
         val enumTypes = mutableSetOf<EnumDTO>()
         val routes = mutableSetOf<RouteData>()
 
-        for (type: GraphQLNamedType in schema.allTypesAsList) {
-            if (type.ignoreForAnalysis()) continue
-
-            if (type.isRouteType()) {
-                routes.addAll(processRouteType(type))
-                continue
-            }
-
-            if (type is GraphQLEnumType) {
-                enumTypes.add(processEnumType(type, packageName))
-                continue
-            }
-
-            if (type is GraphQLObjectType) {
+        for (type: GraphQLNamedType in schema.allTypesAsList) when {
+            type.ignoreForAnalysis() -> continue
+            type.isRouteType() -> routes.addAll(processRouteType(type))
+            type is GraphQLEnumType -> enumTypes.add(processEnumType(type, packageName))
+            type is GraphQLInputObjectType -> inputTypes.add(processInputType(type, packageName))
+            type is GraphQLObjectType -> {
                 outputTypes.add(processOutputType(type, packageName))
-                routes.addAll(processAdditionalRoutes(type))
-                continue
-            }
-
-            if (type is GraphQLInputObjectType) {
-                inputTypes.add(processInputType(type, packageName))
-                continue
+                routes.addAll(processExtensionRoutes(type))
             }
         }
 
