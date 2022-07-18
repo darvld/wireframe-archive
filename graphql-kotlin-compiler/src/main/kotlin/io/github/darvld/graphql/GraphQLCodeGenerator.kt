@@ -94,14 +94,20 @@ public class GraphQLCodeGenerator {
                 addFunction(inputDTO.buildDecoder(environment))
             })
 
+            for (outputDTO in outputTypes) yield(buildFile(outputDTO.name) {
+                addType(outputDTO.buildSpec(environment))
+                addType(outputDTO.buildMapper(environment))
+            })
+
+            for (enum in enumTypes) {
+                yield(enum.buildSpec().pack(packageName))
+            }
+
             for ((routeKind, routes) in routeHandlers.groupBy(RouteData::operation)) {
                 yield(buildFile(routeKind.outputFileName) {
                     for (route in routes) addFunction(route.buildSpec(environment))
                 })
             }
-
-            outputTypes.forEach { yield(it.buildSpec(environment).pack(packageName)) }
-            enumTypes.forEach { yield(it.buildSpec().pack(packageName)) }
         }.map(::Output)
     }
 }
