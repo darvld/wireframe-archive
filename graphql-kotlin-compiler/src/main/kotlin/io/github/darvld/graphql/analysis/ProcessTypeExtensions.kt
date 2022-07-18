@@ -11,17 +11,21 @@ internal fun processExtensionRoutes(definition: GraphQLObjectType): List<RouteDa
 
     addAll(definition.fieldDefinitions.asSequence().filter { it.name in extensionNames }.map { field ->
         RouteData(
-            name = definition.name.replaceFirstChar(Char::lowercase) + field.name.replaceFirstChar(Char::uppercase),
+            name = generateQueryName(definition.name, field.name),
             operation = GraphQLOperation.Extension(definition),
             definition = field
         )
     })
 
-    addAll(definition.fieldDefinitions.asSequence().filter { it.arguments.isNotEmpty() }.map {
+    addAll(definition.fieldDefinitions.asSequence().filter { it.arguments.isNotEmpty() }.map { field ->
         RouteData(
-            name = it.name,
+            name = generateQueryName(definition.name, field.name),
             operation = GraphQLOperation.Query,
-            definition = it
+            definition = field
         )
     })
+}
+
+private fun generateQueryName(typeName: String, fieldName: String): String {
+    return typeName.replaceFirstChar(Char::lowercase) + fieldName.replaceFirstChar(Char::uppercase)
 }

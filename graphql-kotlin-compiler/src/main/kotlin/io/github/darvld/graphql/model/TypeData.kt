@@ -18,4 +18,6 @@ internal data class TypeData<T : GraphQLType>(
     val generatedType: ClassName,
     /**The GraphQL type this DTO should be generated from.*/
     val definition: T,
+    /**Contains the names of the extension fields present in the graphql type.*/
+    val extensionNames: List<String> = emptyList(),
 )

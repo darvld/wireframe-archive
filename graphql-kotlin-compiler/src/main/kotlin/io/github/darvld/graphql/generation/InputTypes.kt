@@ -13,11 +13,11 @@ internal fun InputDTO.buildSpec(environment: GenerationEnvironment): TypeSpec = 
     addModifiers(DATA)
 
     primaryConstructor(buildConstructor {
-        definition.fieldDefinitions.forEach {
-            val fieldTypeName = it.type.typeName(environment.packageName)
+        for (field in definition.fields) {
+            val fieldTypeName = field.type.typeName(environment.packageName)
 
-            addParameter(ParameterSpec.builder(it.name, fieldTypeName).build())
-            addProperty(PropertySpec.builder(it.name, fieldTypeName).initializer(it.name).build())
+            addParameter(ParameterSpec.builder(field.name, fieldTypeName).build())
+            addProperty(PropertySpec.builder(field.name, fieldTypeName).initializer(field.name).build())
         }
     })
 }
@@ -56,7 +56,7 @@ internal fun InputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec 
         superclass(INPUT_MAPPER)
 
         primaryConstructor(buildConstructor {
-            definition.fieldDefinitions.forEach {
+            definition.fields.forEach {
                 val fieldTypeName = INPUT_TRANSFORM.parameterizedBy(it.type.typeName(environment.packageName))
 
                 addParameter(ParameterSpec.builder(it.name, fieldTypeName).build())
