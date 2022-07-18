@@ -12,7 +12,11 @@ class CodeGeneratorTest {
         val outputDirectory = Path("build/generated/kotlin")
         println("Using directory: $outputDirectory")
 
-        GraphQLCodeGenerator().generate(packageName = "", sources).forEach {
+        val generator = GraphQLCodeGenerator()
+        val data = generator.analyze(packageName = "", sources)
+        val output = generator.generate(data)
+
+        output.forEach {
             println("====================================================")
             println("= File: ${it.name}.kt")
             println("====================================================")

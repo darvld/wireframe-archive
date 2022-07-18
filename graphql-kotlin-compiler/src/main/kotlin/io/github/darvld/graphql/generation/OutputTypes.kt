@@ -1,28 +1,27 @@
 package io.github.darvld.graphql.generation
 
-import com.squareup.kotlinpoet.*
-import graphql.schema.GraphQLObjectType
-import io.github.darvld.graphql.extensions.generatedName
+import com.squareup.kotlinpoet.KModifier.DATA
+import com.squareup.kotlinpoet.ParameterSpec
+import com.squareup.kotlinpoet.PropertySpec
+import com.squareup.kotlinpoet.TypeSpec
+import io.github.darvld.graphql.extensions.buildClass
+import io.github.darvld.graphql.extensions.buildConstructor
 import io.github.darvld.graphql.extensions.nullable
 import io.github.darvld.graphql.extensions.typeName
 import io.github.darvld.graphql.model.GenerationEnvironment
+import io.github.darvld.graphql.model.OutputDTO
 
-/**Generates a [TypeSpec] for a GraphQL output type as a Kotlin DTO.*/
-internal fun GenerationEnvironment.generateOutputType(typeDefinition: GraphQLObjectType): TypeSpec {
-    val generatedTypeName = typeDefinition.generatedName()
-    val type = TypeSpec.classBuilder(generatedTypeName).addModifiers(KModifier.DATA)
+/**Builds a [TypeSpec] from this output DTO's type data.*/
+internal fun OutputDTO.buildSpec(environment: GenerationEnvironment): TypeSpec = buildClass(generatedType) {
+    addModifiers(DATA)
 
-    val constructor = FunSpec.constructorBuilder()
+    primaryConstructor(buildConstructor {
+        definition.fields.asSequence().filter { it.arguments.isEmpty() }.forEach {
+            // For output DTOs, all fields are nullable, this allows the server to skip non-requested fields
+            val typeName = it.type.typeName(environment.packageName).nullable()
 
-    // Generate fields as properties so long as they don't have any arguments
-    typeDefinition.fields.asSequence().filter { it.arguments.isEmpty() }.forEach {
-        // Get the type for this property, for output DTOs, all fields are nullable
-        val typeName = it.type.typeName(packageName).nullable()
-
-        constructor.addParameter(ParameterSpec.builder(it.name, typeName).defaultValue("null").build())
-        type.addProperty(PropertySpec.builder(it.name, typeName).initializer(it.name).build())
-    }
-    type.primaryConstructor(constructor.build())
-
-    return type.build()
+            addParameter(ParameterSpec.builder(it.name, typeName).defaultValue("null").build())
+            addProperty(PropertySpec.builder(it.name, typeName).initializer(it.name).build())
+        }
+    })
 }

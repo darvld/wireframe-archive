@@ -7,7 +7,7 @@ import io.github.darvld.graphql.extensions.*
 import io.github.darvld.graphql.model.GenerationEnvironment
 
 /**Builds a [CodeBlock] to extract a field from a target container (e.g. a map or a GraphQL request), and map them
- * from graphql-java's map representation to the corresponding input DTO or primitive type..*/
+ * from graphql-java's map representation to the corresponding input DTO or primitive type.*/
 internal fun GenerationEnvironment.buildFieldExtractor(
     extractor: (TypeName) -> CodeBlock,
     fieldType: GraphQLType,

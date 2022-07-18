@@ -1,16 +1,34 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package io.github.darvld.graphql.extensions
 
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import graphql.Scalars
 import graphql.schema.*
+import io.github.darvld.graphql.model.GenerationEnvironment
 import io.github.darvld.graphql.model.GraphQLOperation.*
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.contract
 
 internal val IdAlias = ClassName("io.github.darvld.graphql.mapping", "ID")
 
-internal fun GraphQLNamedType.isRouteType(): Boolean = when (name) {
-    Query.name, Mutation.name, Subscription.name -> true
-    else -> false
+@OptIn(ExperimentalContracts::class)
+internal fun GraphQLNamedType.isRouteType(): Boolean {
+    contract {
+        returns(true) implies (this@isRouteType is GraphQLObjectType)
+    }
+
+    if (this !is GraphQLObjectType) return false
+
+    return when (name) {
+        Query.name, Mutation.name, Subscription.name -> true
+        else -> false
+    }
+}
+
+internal inline fun GenerationEnvironment.typeNameFor(type: GraphQLType): TypeName {
+    return type.typeName(packageName)
 }
 
 internal fun GraphQLType.typeName(packageName: String): TypeName {

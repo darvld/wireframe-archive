@@ -6,11 +6,13 @@ import graphql.schema.idl.RuntimeWiring
 import graphql.schema.idl.SchemaGenerator
 import graphql.schema.idl.SchemaParser
 import graphql.schema.idl.TypeDefinitionRegistry
+import io.github.darvld.graphql.analysis.*
 import io.github.darvld.graphql.extensions.buildFile
 import io.github.darvld.graphql.extensions.isRouteType
 import io.github.darvld.graphql.extensions.pack
-import io.github.darvld.graphql.generation.*
-import io.github.darvld.graphql.model.GenerationEnvironment
+import io.github.darvld.graphql.generation.buildDecoder
+import io.github.darvld.graphql.generation.buildSpec
+import io.github.darvld.graphql.model.*
 import java.nio.file.Path
 
 /**Analyzes `.graphqls` schema definitions using graphql-java and outputs type-safe Kotlin code for the types and
@@ -36,17 +38,8 @@ public class GraphQLCodeGenerator {
         }
     }
 
-    /**Generate type-safe Kotlin DTOs and mappers for input and output types, and route handler extensions for queries,
-     *  mutations and subscriptions.
-     *
-     * A pseudo-constructor will be generated for each input type, taking a `Map<String, Any?>` as its only parameter,
-     * to enable conversion from graphql-java's map-based input schemas.
-     *
-     * The returned sequence triggers the actual code generation when collected.*/
-    public fun generate(
-        packageName: String,
-        sources: List<String>,
-    ): Sequence<Output> {
+    /**Analyzes the provided GraphQL schema sources and collects necessary data for code generation in the target package.*/
+    public fun analyze(packageName: String, sources: List<String>): GenerationEnvironment {
         val parser = SchemaParser()
 
         // Parse all sources and merge declarations into a single registry
@@ -60,34 +53,66 @@ public class GraphQLCodeGenerator {
             /* wiring = */ RuntimeWiring.newRuntimeWiring().build()
         )
 
-        // Process all types in the schema and generate the output sequence
-        val environment = GenerationEnvironment(packageName)
-        return schema.allTypesAsList.asSequence().mapNotNull { type ->
-            environment.generateType(type)
-        }.map(::Output)
+        val inputTypes = mutableSetOf<InputDTO>()
+        val outputTypes = mutableSetOf<OutputDTO>()
+        val enumTypes = mutableSetOf<EnumDTO>()
+        val routes = mutableSetOf<RouteData>()
+
+        for (type: GraphQLNamedType in schema.allTypesAsList) {
+            if (type.ignoreForAnalysis()) continue
+
+            if (type.isRouteType()) {
+                routes.addAll(processRouteType(type))
+                continue
+            }
+
+            if (type is GraphQLEnumType) {
+                enumTypes.add(processEnumType(type, packageName))
+                continue
+            }
+
+            if (type is GraphQLObjectType) {
+                outputTypes.add(processOutputType(type, packageName))
+                continue
+            }
+
+            if (type is GraphQLInputObjectType) {
+                inputTypes.add(processInputType(type, packageName))
+                continue
+            }
+        }
+
+        return GenerationEnvironment(
+            packageName,
+            inputTypes,
+            outputTypes,
+            enumTypes,
+            routes,
+        )
     }
 
-    private fun GenerationEnvironment.generateType(type: GraphQLNamedType): FileSpec? {
-        // Ignore internal type definitions. This excludes introspection types and handlers
-        if (type.name.startsWith("_")) return null
+    /**Generate type-safe Kotlin DTOs and mappers for input and output types, and route handler extensions for queries,
+     *  mutations and subscriptions.
+     *
+     * A pseudo-constructor will be generated for each input type, taking a `Map<String, Any?>` as its only parameter,
+     * to enable conversion from graphql-java's map-based input schemas.
+     *
+     * The returned sequence triggers the actual code generation when collected.*/
+    public fun generate(environment: GenerationEnvironment): Sequence<Output> = with(environment) {
+        return sequence {
+            for (inputDTO in inputTypes) yield(buildFile(inputDTO.name) {
+                addType(inputDTO.buildSpec(environment))
+                addFunction(inputDTO.buildDecoder(environment))
+            })
 
-        // Query, Mutation, and Subscription are top-level objects used to define operations
-        if (type is GraphQLObjectType && type.isRouteType()) {
-            return generateRouteHandlers(type).pack(packageName, type.name)
-        }
+            for ((routeKind, routes) in routeHandlers.groupBy(RouteData::kind)) {
+                yield(buildFile(routeKind.outputName) {
+                    for (route in routes) addFunction(route.buildSpec(environment))
+                })
+            }
 
-        return when (type) {
-            is GraphQLEnumType -> {
-                generateEnumType(type).pack(packageName)
-            }
-            is GraphQLObjectType -> {
-                generateOutputType(type).pack(packageName)
-            }
-            is GraphQLInputObjectType -> buildFile(type.name) {
-                addType(generateInputType(type))
-                addFunction(generateInputDecoder(type))
-            }
-            else -> null
-        }
+            outputTypes.forEach { yield(it.buildSpec(environment).pack(packageName)) }
+            enumTypes.forEach { yield(it.buildSpec().pack(packageName)) }
+        }.map(::Output)
     }
 }
