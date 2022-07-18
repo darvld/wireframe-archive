@@ -36,6 +36,14 @@ class CodeGeneratorTest {
                 content: String!
             }
             
+            extend type Message {
+                age: Int!
+            }
+            
+            extend type Query {
+                chat(id: ID!): Chat!
+            }
+            
             input MessageInput {
                 content: String!
             }

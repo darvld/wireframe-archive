@@ -16,7 +16,7 @@ internal fun OutputDTO.buildSpec(environment: GenerationEnvironment): TypeSpec =
     addModifiers(DATA)
 
     primaryConstructor(buildConstructor {
-        definition.fields.asSequence().filter { it.arguments.isEmpty() }.forEach {
+        definition.fieldDefinitions.asSequence().filter { it.arguments.isEmpty() }.forEach {
             // For output DTOs, all fields are nullable, this allows the server to skip non-requested fields
             val typeName = it.type.typeName(environment.packageName).nullable()
 

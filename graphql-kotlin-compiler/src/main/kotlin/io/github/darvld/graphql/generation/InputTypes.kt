@@ -12,7 +12,7 @@ internal fun InputDTO.buildSpec(environment: GenerationEnvironment): TypeSpec = 
     addModifiers(DATA)
 
     primaryConstructor(buildConstructor {
-        definition.fields.forEach {
+        definition.fieldDefinitions.forEach {
             val fieldTypeName = it.type.typeName(environment.packageName)
 
             addParameter(ParameterSpec.builder(it.name, fieldTypeName).build())
