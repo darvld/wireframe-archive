@@ -1,37 +1,41 @@
-package io.github.darvld.graphql.utils
+package io.github.darvld.graphql.extensions
 
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import graphql.Scalars
 import graphql.schema.*
+import io.github.darvld.graphql.model.GraphQLOperation.*
 
-internal val ExcludedNames: List<String> by lazy {
-    listOf("Query", "Mutation", "Subscription")
+internal val IdAlias = ClassName("io.github.darvld.graphql.mapping", "ID")
+
+internal fun GraphQLNamedType.isRouteType(): Boolean = when (name) {
+    Query.name, Mutation.name, Subscription.name -> true
+    else -> false
 }
 
 internal fun GraphQLType.typeName(packageName: String): TypeName {
     return when (this) {
-        is GraphQLNonNull -> originalWrappedType.typeName(packageName).copy(nullable = false)
+        is GraphQLNonNull -> originalWrappedType.typeName(packageName).nonNullable()
         is GraphQLList -> listTypeName(packageName)
-        is GraphQLScalarType -> scalarTypeName().copy(nullable = true)
-        is GraphQLNamedType -> ClassName(packageName, generatedName()).copy(nullable = true)
+        is GraphQLScalarType -> scalarTypeName()
+        is GraphQLNamedType -> ClassName(packageName, generatedName()).nullable()
         else -> throw IllegalArgumentException("Unsupported type: $this.")
     }
 }
 
 internal fun GraphQLList.listTypeName(packageName: String): TypeName {
-    return LIST.parameterizedBy(originalWrappedType.typeName(packageName))
+    return LIST.parameterizedBy(originalWrappedType.typeName(packageName)).nullable()
 }
 
 internal fun GraphQLScalarType.scalarTypeName(): TypeName {
     return when (this) {
         Scalars.GraphQLBoolean -> BOOLEAN
         Scalars.GraphQLFloat -> FLOAT
-        Scalars.GraphQLID -> STRING
+        Scalars.GraphQLID -> IdAlias
         Scalars.GraphQLInt -> INT
         Scalars.GraphQLString -> STRING
         else -> throw NotImplementedError("Custom scalar type are not supported yet.")
-    }
+    }.nullable()
 }
 
 internal fun GraphQLNamedType.generatedName(): String {
