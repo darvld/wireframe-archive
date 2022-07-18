@@ -11,13 +11,18 @@ import io.github.darvld.graphql.model.InputDTO
 /**Builds a [TypeSpec] from this input DTO's type data.*/
 internal fun InputDTO.buildSpec(environment: GenerationEnvironment): TypeSpec = buildClass(generatedType) {
     addModifiers(DATA)
+    addKdoc(definition.description.orEmpty())
 
     primaryConstructor(buildConstructor {
         for (field in definition.fields) {
             val fieldTypeName = field.type.typeName(environment.packageName)
+            val property = PropertySpec.builder(field.name, fieldTypeName)
+                .addKdoc(field.description.orEmpty())
+                .initializer(field.name)
+                .build()
 
-            addParameter(ParameterSpec.builder(field.name, fieldTypeName).build())
-            addProperty(PropertySpec.builder(field.name, fieldTypeName).initializer(field.name).build())
+            addParameter(field.name, fieldTypeName)
+            addProperty(property)
         }
     })
 }
@@ -53,6 +58,7 @@ internal fun InputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec 
     val mapperName = ClassName(generatedType.packageName, name.removeSuffix("DTO") + "Mapper")
 
     return buildClass(mapperName) {
+        addKdoc(definition.description.orEmpty())
         superclass(INPUT_MAPPER)
 
         primaryConstructor(buildConstructor {

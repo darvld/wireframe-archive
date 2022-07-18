@@ -31,12 +31,20 @@ class CodeGeneratorTest {
         @Language("GraphQL")
         @Suppress("GraphQLUnresolvedReference")
         const val SampleSchema = """
+            "A sample enum."
+            enum Status {
+                On,
+                Off
+            }
+            
+            "A message sent by a user."
             type Message {
                 author: String!
                 content: String!
             }
             
             extend type User {
+                "The age of the user"
                 age: Int!
             }
             
@@ -44,7 +52,9 @@ class CodeGeneratorTest {
                 chat(id: ID!): Chat!
             }
             
+            "Message input structure"
             input MessageInput {
+                "The content of the message"
                 content: String!
             }
             
@@ -60,6 +70,7 @@ class CodeGeneratorTest {
             }
             
             type Query {
+                "The chat history for the room with the given id."
                 chatHistory(chat: ID!): [Message!]!
             }
             

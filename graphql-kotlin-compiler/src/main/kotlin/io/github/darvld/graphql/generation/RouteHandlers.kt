@@ -11,6 +11,7 @@ import io.github.darvld.graphql.routing.GraphQLRoute
 
 /**Builds a handler extension for this route.*/
 internal fun RouteData.buildSpec(environment: GenerationEnvironment): FunSpec = buildFunction(name) {
+    addKdoc(definition.description.orEmpty())
     receiver(GraphQLRoute::class.asTypeName())
 
     addParameter(

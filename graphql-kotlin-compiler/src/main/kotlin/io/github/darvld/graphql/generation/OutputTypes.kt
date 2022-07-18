@@ -14,6 +14,7 @@ import io.github.darvld.graphql.model.OutputDTO
 
 /**Builds a [TypeSpec] from this output DTO's type data.*/
 internal fun OutputDTO.buildSpec(environment: GenerationEnvironment): TypeSpec = buildClass(generatedType) {
+    addKdoc(definition.description.orEmpty())
     addModifiers(DATA)
 
     primaryConstructor(buildConstructor {
@@ -23,9 +24,13 @@ internal fun OutputDTO.buildSpec(environment: GenerationEnvironment): TypeSpec =
 
             // For output DTOs, all fields are nullable, this allows the server to skip non-requested fields
             val typeName = field.type.typeName(environment.packageName).nullable()
+            val property = PropertySpec.builder(field.name, typeName)
+                .addKdoc(field.description.orEmpty())
+                .initializer(field.name)
+                .build()
 
             addParameter(ParameterSpec.builder(field.name, typeName).defaultValue("null").build())
-            addProperty(PropertySpec.builder(field.name, typeName).initializer(field.name).build())
+            addProperty(property)
         }
     })
 }
