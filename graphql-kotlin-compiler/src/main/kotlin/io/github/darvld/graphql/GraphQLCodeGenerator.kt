@@ -11,6 +11,7 @@ import io.github.darvld.graphql.extensions.buildFile
 import io.github.darvld.graphql.extensions.isRouteType
 import io.github.darvld.graphql.extensions.pack
 import io.github.darvld.graphql.generation.buildDecoder
+import io.github.darvld.graphql.generation.buildMapper
 import io.github.darvld.graphql.generation.buildSpec
 import io.github.darvld.graphql.model.*
 import java.nio.file.Path
@@ -89,6 +90,7 @@ public class GraphQLCodeGenerator {
         return sequence {
             for (inputDTO in inputTypes) yield(buildFile(inputDTO.name) {
                 addType(inputDTO.buildSpec(environment))
+                addType(inputDTO.buildMapper(environment))
                 addFunction(inputDTO.buildDecoder(environment))
             })
 

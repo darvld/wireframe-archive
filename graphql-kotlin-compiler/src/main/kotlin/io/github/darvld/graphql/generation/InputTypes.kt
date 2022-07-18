@@ -4,6 +4,7 @@ import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.KModifier.DATA
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import io.github.darvld.graphql.extensions.*
+import io.github.darvld.graphql.mapping.InputMapper
 import io.github.darvld.graphql.model.GenerationEnvironment
 import io.github.darvld.graphql.model.InputDTO
 
@@ -44,4 +45,34 @@ internal fun InputDTO.buildDecoder(
         unindent()
         add(")\n")
     })
+}
+
+/**Generates a [TypeSpec] describing an [InputMapper] for this DTO. This allows to translate from the business layer's
+ * input to, for example, a MongoDB document structure.*/
+internal fun InputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec {
+    val mapperName = ClassName(generatedType.packageName, name.removeSuffix("DTO") + "Mapper")
+
+    return buildClass(mapperName) {
+        superclass(INPUT_MAPPER)
+
+        primaryConstructor(buildConstructor {
+            definition.fieldDefinitions.forEach {
+                val fieldTypeName = INPUT_TRANSFORM.parameterizedBy(it.type.typeName(environment.packageName))
+
+                addParameter(ParameterSpec.builder(it.name, fieldTypeName).build())
+                addProperty(PropertySpec.builder(it.name, fieldTypeName).initializer(it.name).build())
+            }
+        })
+
+        addFunction(buildFunction("map") {
+            addParameter("input", generatedType)
+            addParameter("target", MAPPING_TARGET)
+
+            beginControlFlow("return with(target)·{")
+            definition.fieldDefinitions.forEach {
+                addStatement("set(%L, input.%L)", it.name, it.name)
+            }
+            endControlFlow()
+        })
+    }
 }
