@@ -69,7 +69,7 @@ internal fun InputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec 
             addParameter("target", MAPPING_TARGET)
 
             beginControlFlow("return with(target)·{")
-            definition.fieldDefinitions.forEach {
+            definition.fields.forEach {
                 addStatement("set(%L, input.%L)", it.name, it.name)
             }
             endControlFlow()

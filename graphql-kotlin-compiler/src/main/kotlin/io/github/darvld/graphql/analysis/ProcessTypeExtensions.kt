@@ -6,10 +6,10 @@ import io.github.darvld.graphql.model.RouteData
 
 internal fun processExtensionRoutes(definition: GraphQLObjectType): List<RouteData> = buildList {
     val extensionNames = definition.extensionDefinitions.flatMap { extension ->
-        extension.fieldDefinitions.map { it.name }
+        extension.fieldDefinitions.map { it.name!! }
     }
 
-    addAll(definition.fieldDefinitions.asSequence().filter { it.name in extensionNames }.map { field ->
+    addAll(definition.fields.asSequence().filter { it.name in extensionNames }.map { field ->
         RouteData(
             name = generateQueryName(definition.name, field.name),
             operation = GraphQLOperation.Extension(definition),
@@ -17,7 +17,7 @@ internal fun processExtensionRoutes(definition: GraphQLObjectType): List<RouteDa
         )
     })
 
-    addAll(definition.fieldDefinitions.asSequence().filter { it.arguments.isNotEmpty() }.map { field ->
+    addAll(definition.fields.asSequence().filter { it.arguments.isNotEmpty() }.map { field ->
         RouteData(
             name = generateQueryName(definition.name, field.name),
             operation = GraphQLOperation.Query,

@@ -7,7 +7,7 @@ import io.github.darvld.graphql.model.RouteData
 internal fun processRouteType(definition: GraphQLObjectType): List<RouteData> {
     val routeKind = GraphQLOperation.operationFor(definition)
 
-    return definition.fieldDefinitions.map { routeDefinition ->
+    return definition.fields.map { routeDefinition ->
         RouteData(routeDefinition.name, routeKind, routeDefinition)
     }
 }
