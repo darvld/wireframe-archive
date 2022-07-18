@@ -36,7 +36,7 @@ class CodeGeneratorTest {
                 content: String!
             }
             
-            extend type Message {
+            extend type User {
                 age: Int!
             }
             

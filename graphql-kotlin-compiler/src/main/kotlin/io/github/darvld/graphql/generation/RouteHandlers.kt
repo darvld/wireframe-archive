@@ -14,7 +14,7 @@ internal fun RouteData.buildSpec(environment: GenerationEnvironment): FunSpec = 
     receiver(GraphQLRoute::class.asTypeName())
 
     addParameter(
-        name = "handler",
+        name = "routeHandler",
         type = LambdaTypeName.get(
             parameters = definition.arguments.map { ParameterSpec(it.name, environment.typeNameFor(it.type)) },
             returnType = environment.typeNameFor(definition.type),
@@ -23,7 +23,7 @@ internal fun RouteData.buildSpec(environment: GenerationEnvironment): FunSpec = 
     )
 
     addCode {
-        beginControlFlow("%M(%S)", kind.routeExtension, definition.name)
+        beginControlFlow("handler(%S, %S)", operation.graphQLTypeName, definition.name)
 
         definition.arguments.forEach { argument ->
             val extractor = environment.buildFieldExtractor(
@@ -36,13 +36,12 @@ internal fun RouteData.buildSpec(environment: GenerationEnvironment): FunSpec = 
 
         add("\n")
         beginControlFlow("val result = %M·{", MemberName("kotlin", "runCatching"))
-        addStatement("handler(%L)", definition.arguments.joinToString(",") { it.name })
+        addStatement("routeHandler(%L)", definition.arguments.joinToString(",") { it.name })
         endControlFlow()
 
         add("\n")
         addStatement(
-            format = "return@%L result.%M()",
-            kind.routeExtension.simpleName,
+            format = "return@handler result.%M()",
             MemberName("io.github.darvld.graphql.execution", "asDataFetcherResult")
         )
 

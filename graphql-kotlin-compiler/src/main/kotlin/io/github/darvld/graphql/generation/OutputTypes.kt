@@ -15,8 +15,14 @@ import io.github.darvld.graphql.model.OutputDTO
 internal fun OutputDTO.buildSpec(environment: GenerationEnvironment): TypeSpec = buildClass(generatedType) {
     addModifiers(DATA)
 
+    val extensionNames = definition.extensionDefinitions.flatMap { extension ->
+        extension.fieldDefinitions.map { it.name }
+    }
+
     primaryConstructor(buildConstructor {
-        definition.fieldDefinitions.asSequence().filter { it.arguments.isEmpty() }.forEach {
+        definition.fieldDefinitions.asSequence().filter {
+            it.arguments.isEmpty() && it.name !in extensionNames
+        }.forEach {
             // For output DTOs, all fields are nullable, this allows the server to skip non-requested fields
             val typeName = it.type.typeName(environment.packageName).nullable()
 

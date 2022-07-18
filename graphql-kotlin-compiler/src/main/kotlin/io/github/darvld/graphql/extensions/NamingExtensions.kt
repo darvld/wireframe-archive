@@ -22,7 +22,7 @@ internal fun GraphQLNamedType.isRouteType(): Boolean {
     if (this !is GraphQLObjectType) return false
 
     return when (name) {
-        Query.name, Mutation.name, Subscription.name -> true
+        Query.graphQLTypeName, Mutation.graphQLTypeName, Subscription.graphQLTypeName -> true
         else -> false
     }
 }

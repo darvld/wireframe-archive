@@ -73,6 +73,7 @@ public class GraphQLCodeGenerator {
 
             if (type is GraphQLObjectType) {
                 outputTypes.add(processOutputType(type, packageName))
+                routes.addAll(processAdditionalRoutes(type))
                 continue
             }
 
@@ -105,8 +106,8 @@ public class GraphQLCodeGenerator {
                 addFunction(inputDTO.buildDecoder(environment))
             })
 
-            for ((routeKind, routes) in routeHandlers.groupBy(RouteData::kind)) {
-                yield(buildFile(routeKind.outputName) {
+            for ((routeKind, routes) in routeHandlers.groupBy(RouteData::operation)) {
+                yield(buildFile(routeKind.outputFileName) {
                     for (route in routes) addFunction(route.buildSpec(environment))
                 })
             }
