@@ -4,9 +4,21 @@ import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.KModifier.DATA
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import io.github.darvld.graphql.extensions.*
+import io.github.darvld.graphql.generation.InputNames.DecoderMapParameter
+import io.github.darvld.graphql.generation.InputNames.MapperInputParameter
+import io.github.darvld.graphql.generation.InputNames.MapperMapFunctionName
+import io.github.darvld.graphql.generation.InputNames.MapperTargetParameter
 import io.github.darvld.graphql.mapping.InputMapper
 import io.github.darvld.graphql.model.GenerationEnvironment
 import io.github.darvld.graphql.model.InputDTO
+
+private object InputNames {
+    const val DecoderMapParameter = "map"
+
+    const val MapperMapFunctionName = "map"
+    const val MapperInputParameter = "input"
+    const val MapperTargetParameter = "target"
+}
 
 /**Builds a [TypeSpec] from this input DTO's type data.*/
 internal fun InputDTO.buildSpec(environment: GenerationEnvironment): TypeSpec = buildClass(generatedType) {
@@ -37,7 +49,7 @@ internal fun InputDTO.buildDecoder(
     addKdoc("Constructs a new $name from an unsafe map. This is useful for decoding the query parameters provided by graphql-java.")
 
     returns(generatedType)
-    addParameter("map", MAP.parameterizedBy(STRING, ANY.nullable()))
+    addParameter(DecoderMapParameter, MAP.parameterizedBy(STRING, ANY.nullable()))
 
     addCode(buildCodeBlock {
         add("return·%T(\n", generatedType)
@@ -45,7 +57,7 @@ internal fun InputDTO.buildDecoder(
 
         for (field in definition.fields) {
             val extractor = environment.buildFieldExtractor(
-                extractor = { CodeBlock.of("map[%S]·as·%T", field.name, it) },
+                extractor = { CodeBlock.of("%L[%S]·as·%T", DecoderMapParameter, field.name, it) },
                 fieldType = field.type,
             )
 
@@ -60,7 +72,7 @@ internal fun InputDTO.buildDecoder(
 /**Generates a [TypeSpec] describing an [InputMapper] for this DTO. This allows to translate from the business layer's
  * input to, for example, a MongoDB document structure.*/
 internal fun InputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec {
-    val mapperName = ClassName(generatedType.packageName, name.removeSuffix("DTO") + "Mapper")
+    val mapperName = ClassName(generatedType.packageName, mapperName())
 
     return buildClass(mapperName) {
         superclass(INPUT_MAPPER)
@@ -77,13 +89,13 @@ internal fun InputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec 
             }
         })
 
-        addFunction(buildFunction("map") {
-            addParameter("input", generatedType)
-            addParameter("target", MAPPING_TARGET)
+        addFunction(buildFunction(MapperMapFunctionName) {
+            addParameter(MapperInputParameter, generatedType)
+            addParameter(MapperTargetParameter, MAPPING_TARGET)
 
-            beginControlFlow("return with(target)·{")
+            beginControlFlow("return·with(%L)·{", MapperTargetParameter)
             definition.fields.forEach {
-                addStatement("set(%L, input.%L)", it.name, it.name)
+                addStatement("set(%L, %L.%L)", it.name, MapperInputParameter, it.name)
             }
             endControlFlow()
         })

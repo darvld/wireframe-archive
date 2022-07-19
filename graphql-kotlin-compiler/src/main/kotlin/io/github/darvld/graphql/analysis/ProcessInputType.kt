@@ -5,7 +5,7 @@ import graphql.schema.GraphQLInputObjectType
 import io.github.darvld.graphql.model.InputDTO
 
 internal fun processInputType(definition: GraphQLInputObjectType, packageName: String): InputDTO {
-    val generatedName = "${definition.name}DTO"
+    val generatedName = generateNameFor(definition)
 
     return InputDTO(
         name = generatedName,

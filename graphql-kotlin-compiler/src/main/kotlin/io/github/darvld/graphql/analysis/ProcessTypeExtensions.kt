@@ -25,7 +25,3 @@ internal fun processExtensionRoutes(definition: GraphQLObjectType): List<RouteDa
         )
     })
 }
-
-private fun generateQueryName(typeName: String, fieldName: String): String {
-    return typeName.replaceFirstChar(Char::lowercase) + fieldName.replaceFirstChar(Char::uppercase)
-}

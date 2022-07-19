@@ -8,9 +8,23 @@ import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import graphql.schema.GraphQLObjectType
 import io.github.darvld.graphql.extensions.*
+import io.github.darvld.graphql.generation.OutputNames.MapperMapFunctionName
+import io.github.darvld.graphql.generation.OutputNames.MapperOptionalParameterSuffix
+import io.github.darvld.graphql.generation.OutputNames.MapperProjectFunctionName
+import io.github.darvld.graphql.generation.OutputNames.MapperProjectionSetParameter
+import io.github.darvld.graphql.generation.OutputNames.MapperSourceParameter
 import io.github.darvld.graphql.mapping.OutputMapper
 import io.github.darvld.graphql.model.GenerationEnvironment
 import io.github.darvld.graphql.model.OutputDTO
+
+private object OutputNames {
+    const val MapperMapFunctionName = "map"
+    const val MapperSourceParameter = "source"
+    const val MapperOptionalParameterSuffix = "Data"
+
+    const val MapperProjectFunctionName = "project"
+    const val MapperProjectionSetParameter = "selectionSet"
+}
 
 /**Builds a [TypeSpec] from this output DTO's type data.*/
 internal fun OutputDTO.buildSpec(environment: GenerationEnvironment): TypeSpec = buildClass(generatedType) {
@@ -40,7 +54,7 @@ internal fun OutputDTO.buildSpec(environment: GenerationEnvironment): TypeSpec =
 /**Generates a [TypeSpec] describing an [OutputMapper] for this DTO. This allows to translate to the business layer's
  * output from, for example, a MongoDB document structure.*/
 internal fun OutputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec {
-    val mapperName = ClassName(generatedType.packageName, name.removeSuffix("DTO") + "Mapper")
+    val mapperName = ClassName(generatedType.packageName, mapperName())
 
     return buildClass(mapperName) {
         superclass(OUTPUT_MAPPER)
@@ -57,9 +71,9 @@ internal fun OutputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec
             }
         })
 
-        addFunction(buildFunction("map") {
+        addFunction(buildFunction(MapperMapFunctionName) {
             returns(generatedType)
-            addParameter("source", MAPPING_SOURCE)
+            addParameter(MapperSourceParameter, MAPPING_SOURCE)
 
             addCode {
                 add("return·%T(\n", generatedType)
@@ -70,19 +84,19 @@ internal fun OutputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec
 
                     // Primitives and simple types can be retrieved automatically
                     if (field.type.unwrapCompletely() !is GraphQLObjectType) {
-                        add("%L·from·source,\n", field.name)
+                        add("%L·from·%L,\n", field.name, MapperSourceParameter)
                         continue
                     }
 
                     // Object types (or types wrapping an object type) may require injection
                     // By default, use the passed argument, otherwise attempt to extract it from the source
                     val artificialParameter = ParameterSpec.builder(
-                        name = field.name + "Data",
+                        name = field.name + MapperOptionalParameterSuffix,
                         type = field.type.typeName(environment.packageName).nullable()
                     ).defaultValue("null").build()
 
                     addParameter(artificialParameter)
-                    add("%L·?:·(%L·from·source),\n", artificialParameter.name, field.name)
+                    add("%L·?:·(%L·from·%L),\n", artificialParameter.name, field.name, MapperSourceParameter)
                 }
 
                 unindent()
@@ -90,13 +104,13 @@ internal fun OutputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec
             }
         })
 
-        addFunction(buildFunction("project") {
+        addFunction(buildFunction(MapperProjectFunctionName) {
             returns(FIELD_SET)
 
-            addParameter("selectionSet", DATA_FETCHING_SELECTION_FIELD_SET)
+            addParameter(MapperProjectionSetParameter, DATA_FETCHING_SELECTION_FIELD_SET)
             beginControlFlow("return·buildList·{")
             for (field in definition.fields) {
-                addStatement("addIfPresent(%L, selectionSet)", field.name)
+                addStatement("addIfPresent(%L, %L)", field.name, MapperProjectionSetParameter)
             }
             endControlFlow()
         })

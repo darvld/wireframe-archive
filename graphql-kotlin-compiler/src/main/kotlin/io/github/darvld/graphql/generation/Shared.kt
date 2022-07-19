@@ -5,6 +5,20 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import graphql.schema.*
 import io.github.darvld.graphql.extensions.*
 import io.github.darvld.graphql.model.GenerationEnvironment
+import io.github.darvld.graphql.model.InputDTO
+import io.github.darvld.graphql.model.OutputDTO
+
+internal const val MAPPER_NAME_SUFFIX = "Mapper"
+
+@JvmName("outputMapperName")
+internal fun OutputDTO.mapperName(): String {
+    return definition.name + MAPPER_NAME_SUFFIX
+}
+
+@JvmName("inputMapperName")
+internal fun InputDTO.mapperName(): String {
+    return definition.name + MAPPER_NAME_SUFFIX
+}
 
 /**Builds a [CodeBlock] to extract a field from a target container (e.g. a map or a GraphQL request), and map them
  * from graphql-java's map representation to the corresponding input DTO or primitive type.*/

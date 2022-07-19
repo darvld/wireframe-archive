@@ -5,7 +5,7 @@ import graphql.schema.GraphQLObjectType
 import io.github.darvld.graphql.model.OutputDTO
 
 internal fun processOutputType(definition: GraphQLObjectType, packageName: String): OutputDTO {
-    val generatedName = "${definition.name}DTO"
+    val generatedName = generateNameFor(definition)
 
     val extensions = definition.extensionDefinitions.flatMap { extension ->
         extension.fieldDefinitions.map { it.name!! }

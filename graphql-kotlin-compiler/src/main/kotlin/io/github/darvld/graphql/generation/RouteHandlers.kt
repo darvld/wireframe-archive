@@ -6,9 +6,14 @@ import io.github.darvld.graphql.extensions.*
 import io.github.darvld.graphql.extensions.addCode
 import io.github.darvld.graphql.extensions.buildFunction
 import io.github.darvld.graphql.extensions.typeNameFor
+import io.github.darvld.graphql.generation.RouteNames.HandlerParameter
 import io.github.darvld.graphql.model.GenerationEnvironment
 import io.github.darvld.graphql.model.RouteData
 import io.github.darvld.graphql.routing.GraphQLRoute
+
+private object RouteNames {
+    const val HandlerParameter = "routeHandler"
+}
 
 /**Builds a handler extension for this route.*/
 internal fun RouteData.buildSpec(environment: GenerationEnvironment): FunSpec = buildFunction(name) {
@@ -18,7 +23,7 @@ internal fun RouteData.buildSpec(environment: GenerationEnvironment): FunSpec = 
     addKdoc(definition.description.orEmpty())
 
     addParameter(
-        name = "routeHandler",
+        name = HandlerParameter,
         type = LambdaTypeName.get(
             parameters = definition.arguments.map { ParameterSpec(it.name, environment.typeNameFor(it.type)) },
             returnType = environment.typeNameFor(definition.type),
@@ -40,7 +45,7 @@ internal fun RouteData.buildSpec(environment: GenerationEnvironment): FunSpec = 
 
         add("\n")
         beginControlFlow("val result = %M·{", MemberName("kotlin", "runCatching"))
-        addStatement("routeHandler(%L)", definition.arguments.joinToString(",") { it.name })
+        addStatement("%L(%L)", HandlerParameter, definition.arguments.joinToString(",") { it.name })
         endControlFlow()
 
         add("\n")
