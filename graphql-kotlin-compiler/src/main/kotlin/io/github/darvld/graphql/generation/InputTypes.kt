@@ -31,6 +31,8 @@ internal fun InputDTO.buildSpec(environment: GenerationEnvironment): TypeSpec = 
 internal fun InputDTO.buildDecoder(
     environment: GenerationEnvironment,
 ): FunSpec = buildFunction(generatedType.simpleName) {
+    addKdoc("Constructs a new $name from an unsafe map. This is useful for decoding the query parameters provided by graphql-java.")
+
     returns(generatedType)
     addParameter("map", MAP.parameterizedBy(STRING, ANY.nullable()))
 
@@ -58,7 +60,7 @@ internal fun InputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec 
     val mapperName = ClassName(generatedType.packageName, name.removeSuffix("DTO") + "Mapper")
 
     return buildClass(mapperName) {
-        addKdoc(definition.description.orEmpty())
+        addKdoc("An [InputMapper] that can be used to convert [$name] instances to other formats.")
         superclass(INPUT_MAPPER)
 
         primaryConstructor(buildConstructor {

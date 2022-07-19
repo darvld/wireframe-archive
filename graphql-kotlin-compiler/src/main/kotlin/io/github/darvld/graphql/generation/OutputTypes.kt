@@ -41,6 +41,7 @@ internal fun OutputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec
     val mapperName = ClassName(generatedType.packageName, name.removeSuffix("DTO") + "Mapper")
 
     return buildClass(mapperName) {
+        addKdoc("An [OutputMapper] that can be used to create to [$name] instances from other formats.")
         superclass(OUTPUT_MAPPER)
 
         primaryConstructor(buildConstructor {
