@@ -1,6 +1,7 @@
 package io.github.darvld.graphql.generation
 
 import com.squareup.kotlinpoet.*
+import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import io.github.darvld.graphql.execution.GraphQLCall
 import io.github.darvld.graphql.extensions.*
 import io.github.darvld.graphql.extensions.addCode
@@ -26,7 +27,7 @@ internal fun RouteData.buildSpec(environment: GenerationEnvironment): FunSpec = 
         name = HandlerParameter,
         type = LambdaTypeName.get(
             parameters = definition.arguments.map { ParameterSpec(it.name, environment.typeNameFor(it.type)) },
-            returnType = environment.typeNameFor(definition.type),
+            returnType = DATA_FETCHER_RESULT.parameterizedBy(environment.typeNameFor(definition.type)),
             receiver = GraphQLCall::class.asTypeName(),
         ).copy(suspending = true)
     )
