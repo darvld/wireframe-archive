@@ -14,8 +14,10 @@ import io.github.darvld.graphql.model.OutputDTO
 
 /**Builds a [TypeSpec] from this output DTO's type data.*/
 internal fun OutputDTO.buildSpec(environment: GenerationEnvironment): TypeSpec = buildClass(generatedType) {
-    addKdoc(definition.description.orEmpty())
     addModifiers(DATA)
+
+    markAsGenerated()
+    addKdoc(definition.description.orEmpty())
 
     primaryConstructor(buildConstructor {
         for (field in definition.fields) {
@@ -41,8 +43,10 @@ internal fun OutputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec
     val mapperName = ClassName(generatedType.packageName, name.removeSuffix("DTO") + "Mapper")
 
     return buildClass(mapperName) {
-        addKdoc("An [OutputMapper] that can be used to create to [$name] instances from other formats.")
         superclass(OUTPUT_MAPPER)
+
+        markAsGenerated()
+        addKdoc("An [OutputMapper] that can be used to create to [$name] instances from other formats.")
 
         primaryConstructor(buildConstructor {
             definition.fields.forEach {

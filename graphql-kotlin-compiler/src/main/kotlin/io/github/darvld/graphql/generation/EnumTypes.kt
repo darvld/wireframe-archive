@@ -2,10 +2,12 @@ package io.github.darvld.graphql.generation
 
 import com.squareup.kotlinpoet.TypeSpec
 import io.github.darvld.graphql.extensions.buildEnum
+import io.github.darvld.graphql.extensions.markAsGenerated
 import io.github.darvld.graphql.model.EnumDTO
 
 /**Builds a [TypeSpec] from this enum's type data.*/
 internal fun EnumDTO.buildSpec(): TypeSpec = buildEnum(generatedType) {
+    markAsGenerated()
     addKdoc(definition.description.orEmpty())
 
     definition.values.forEach {

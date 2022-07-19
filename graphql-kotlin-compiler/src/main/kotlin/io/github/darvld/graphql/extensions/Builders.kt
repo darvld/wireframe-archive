@@ -1,3 +1,5 @@
+@file:Suppress("NOTHING_TO_INLINE")
+
 package io.github.darvld.graphql.extensions
 
 import com.squareup.kotlinpoet.ClassName
@@ -23,4 +25,12 @@ internal inline fun buildConstructor(builder: FunSpec.Builder.() -> Unit): FunSp
 
 internal inline fun FunSpec.Builder.addCode(builder: CodeBlock.Builder.() -> Unit) {
     addCode(CodeBlock.Builder().apply(builder).build())
+}
+
+internal inline fun TypeSpec.Builder.markAsGenerated() {
+    addAnnotation(GENERATED)
+}
+
+internal inline fun FunSpec.Builder.markAsGenerated() {
+    addAnnotation(GENERATED)
 }

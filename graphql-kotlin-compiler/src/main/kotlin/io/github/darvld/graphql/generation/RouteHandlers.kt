@@ -2,6 +2,7 @@ package io.github.darvld.graphql.generation
 
 import com.squareup.kotlinpoet.*
 import io.github.darvld.graphql.execution.GraphQLCall
+import io.github.darvld.graphql.extensions.*
 import io.github.darvld.graphql.extensions.addCode
 import io.github.darvld.graphql.extensions.buildFunction
 import io.github.darvld.graphql.extensions.typeNameFor
@@ -11,8 +12,10 @@ import io.github.darvld.graphql.routing.GraphQLRoute
 
 /**Builds a handler extension for this route.*/
 internal fun RouteData.buildSpec(environment: GenerationEnvironment): FunSpec = buildFunction(name) {
-    addKdoc(definition.description.orEmpty())
     receiver(GraphQLRoute::class.asTypeName())
+
+    markAsGenerated()
+    addKdoc(definition.description.orEmpty())
 
     addParameter(
         name = "routeHandler",
