@@ -45,15 +45,7 @@ internal fun RouteData.buildSpec(environment: GenerationEnvironment): FunSpec = 
         }
 
         add("\n")
-        beginControlFlow("val result = %M·{", MemberName("kotlin", "runCatching"))
         addStatement("%L(%L)", HandlerParameter, definition.arguments.joinToString(",") { it.name })
-        endControlFlow()
-
-        add("\n")
-        addStatement(
-            format = "return@handler result.%M()",
-            MemberName("io.github.darvld.wireframe.execution", "asDataFetcherResult")
-        )
 
         endControlFlow()
     }
