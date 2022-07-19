@@ -1,5 +1,6 @@
 plugins {
     kotlin("jvm")
+
     id("java-gradle-plugin")
     id("maven-publish")
 }
@@ -16,5 +17,6 @@ gradlePlugin {
 }
 
 dependencies {
+    implementation(projects.graphqlKotlinCompiler)
     implementation(libs.kotlin.plugin)
 }

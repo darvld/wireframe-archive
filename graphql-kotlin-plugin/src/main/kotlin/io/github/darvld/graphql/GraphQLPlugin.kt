@@ -2,27 +2,28 @@ package io.github.darvld.graphql
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.model.ObjectFactory
 import org.gradle.api.plugins.JavaPluginExtension
-import org.gradle.configurationcache.extensions.capitalized
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
-import java.io.File
-import javax.inject.Inject
 
-class GraphQLPlugin @Inject constructor(
-    private val objectFactory: ObjectFactory,
-) : Plugin<Project> {
+@Suppress("unused")
+class GraphQLPlugin : Plugin<Project> {
     override fun apply(target: Project) {
+        configureExtension(target)
         configureSourceSets(target)
     }
 
-    private fun configureSourceSets(project: Project) {
-        project.extensions.getByType(JavaPluginExtension::class.java).sourceSets.all { sourceSet ->
-            val name = "graphql${sourceSet.name.capitalized()}Wiring"
-            val sourceDirectorySet = objectFactory.sourceDirectorySet(name, "GraphQL")
+    private fun configureExtension(project: Project) {
+        val wiring = project.extensions.create(WiringExtension.ProjectExtensionName, WiringExtension::class.java)
 
+        wiring.packageName.set(project.group.toString())
+    }
+
+    private fun configureSourceSets(project: Project) {
+        val wiring = project.extensions.getByName(WiringExtension.ProjectExtensionName) as WiringExtension
+
+        project.extensions.getByType(JavaPluginExtension::class.java).sourceSets.getByName("main") { sourceSet ->
             // Set the sources for the GraphQL schema
-            sourceDirectorySet.srcDir("src/${sourceSet.name}/graphql")
+            val sourceSetRoot = sourceSet.allSource.sourceDirectories.firstOrNull()
 
             // Get the generation task name for this source set
             val taskName = sourceSet.getTaskName("generate", "Wiring")
@@ -31,11 +32,23 @@ class GraphQLPlugin @Inject constructor(
             val outputDir = project.buildDir.resolve("generated/kotlin/${sourceSet.name}")
 
             // Register the code generation task
-            project.tasks.register(taskName, GenerateWiringTask::class.java) {
-                it.description = "Generate kotlin sources for GraphQL definitions."
+            project.tasks.register(taskName, GenerateWiringTask::class.java) { task ->
+                task.description = "Generate kotlin sources for GraphQL definitions."
+                task.packageName.set(wiring.packageName)
 
-                it.sourcesRoot.set(File(sourceDirectorySet.sourceDirectories.asPath))
-                it.outputDir.set(outputDir)
+                val sources = wiring.sourcesRoot.orNull
+                if (sources != null) {
+                    task.sourcesRoot.set(sources)
+                } else {
+                    task.sourcesRoot.set(sourceSetRoot)
+                }
+
+                val output = wiring.outputDirectory.orNull
+                if (output != null) {
+                    task.outputDir.set(output)
+                } else {
+                    task.outputDir.set(outputDir)
+                }
             }
 
             // Configure task to run on every build
