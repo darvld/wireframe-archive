@@ -28,6 +28,11 @@ dependencyResolutionManagement {
 
 rootProject.name = "wireframe"
 
-include(":compiler")
-include(":ktor-plugin")
 include(":gradle-plugin")
+
+include(":compiler-core")
+include(":compiler-ktor")
+include(":compiler-mapping")
+
+include(":runtime-ktor")
+include(":runtime-mapping")

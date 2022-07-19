@@ -2,9 +2,17 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins {
     kotlin("jvm")
-
-    id("java-gradle-plugin")
     id("maven-publish")
+}
+
+dependencies {
+    implementation(libs.graphql.java)
+    implementation(libs.kotlinpoet)
+    testImplementation(kotlin("test"))
+}
+
+kotlin {
+    explicitApi()
 }
 
 java {
@@ -14,18 +22,16 @@ java {
     targetCompatibility = JavaVersion.VERSION_11
 }
 
-gradlePlugin {
-    plugins.create("Wireframe") {
-        id = "io.github.darvld.wireframe"
-        implementationClass = "io.github.darvld.wireframe.WireframePlugin"
+publishing {
+    publications.create<MavenPublication>("compiler-core") {
+        from(components["java"])
     }
-}
-
-dependencies {
-    implementation(projects.compilerCore)
-    implementation(libs.kotlin.plugin)
 }
 
 tasks.withType<KotlinCompile> {
     kotlinOptions.jvmTarget = "11"
+}
+
+tasks.test {
+    useJUnitPlatform()
 }

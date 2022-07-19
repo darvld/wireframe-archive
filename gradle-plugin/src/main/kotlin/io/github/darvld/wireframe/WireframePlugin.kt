@@ -3,6 +3,7 @@ package io.github.darvld.wireframe
 import org.gradle.api.Plugin
 import org.gradle.api.Project
 import org.gradle.api.plugins.JavaPluginExtension
+import org.jetbrains.kotlin.gradle.dsl.KotlinCompile
 import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 
 @Suppress("unused")
@@ -19,6 +20,12 @@ class WireframePlugin : Plugin<Project> {
     }
 
     private fun configureSourceSets(project: Project) {
+        val configuration = project.configurations.create("wireframe") {
+            it.isVisible = false
+            it.isCanBeConsumed = false
+            it.isCanBeResolved = true
+        }
+
         val wiring = project.extensions.getByName(WiringExtension.ProjectExtensionName) as WiringExtension
 
         project.extensions.getByType(JavaPluginExtension::class.java).sourceSets.getByName("main") { sourceSet ->
@@ -36,6 +43,8 @@ class WireframePlugin : Plugin<Project> {
                 task.description = "Generate kotlin sources for GraphQL definitions."
                 task.packageName.set(wiring.packageName)
 
+                task.pluginJars.setFrom(configuration)
+
                 val sources = wiring.sourcesRoot.orNull
                 if (sources != null) {
                     task.sourcesRoot.set(sources)
@@ -52,7 +61,7 @@ class WireframePlugin : Plugin<Project> {
             }
 
             // Configure task to run on every build
-            project.tasks.named(sourceSet.compileJavaTaskName) {
+            project.tasks.withType(KotlinCompile::class.java) {
                 it.dependsOn(taskName)
             }
 
