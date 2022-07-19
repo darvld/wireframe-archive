@@ -1,10 +1,7 @@
 package io.github.darvld.graphql.model
 
 import com.squareup.kotlinpoet.ClassName
-import graphql.schema.GraphQLEnumType
-import graphql.schema.GraphQLInputObjectType
-import graphql.schema.GraphQLObjectType
-import graphql.schema.GraphQLType
+import graphql.schema.*
 
 internal typealias InputDTO = TypeData<GraphQLInputObjectType>
 internal typealias OutputDTO = TypeData<GraphQLObjectType>
@@ -21,3 +18,6 @@ internal data class TypeData<T : GraphQLType>(
     /**Contains the names of the extension fields present in the graphql type.*/
     val extensionNames: List<String> = emptyList(),
 )
+
+internal val OutputDTO.nonExtensionFields: Sequence<GraphQLFieldDefinition>
+    get() = definition.fields.asSequence().filter { it.name !in extensionNames }

@@ -16,6 +16,7 @@ import io.github.darvld.graphql.generation.OutputNames.MapperSourceParameter
 import io.github.darvld.graphql.mapping.OutputMapper
 import io.github.darvld.graphql.model.GenerationEnvironment
 import io.github.darvld.graphql.model.OutputDTO
+import io.github.darvld.graphql.model.nonExtensionFields
 
 private object OutputNames {
     const val MapperMapFunctionName = "map"
@@ -34,10 +35,7 @@ internal fun OutputDTO.buildSpec(environment: GenerationEnvironment): TypeSpec =
     addKdoc(definition.description.orEmpty())
 
     primaryConstructor(buildConstructor {
-        for (field in definition.fields) {
-            // Exclude extensions from being generated as fields
-            if (field.name in extensionNames) continue
-
+        for (field in nonExtensionFields) {
             // For output DTOs, all fields are nullable, this allows the server to skip non-requested fields
             val typeName = field.type.typeName(environment.packageName).nullable()
             val property = PropertySpec.builder(field.name, typeName)
@@ -63,11 +61,11 @@ internal fun OutputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec
         addKdoc("An [OutputMapper] that can be used to create to [$name] instances from other formats.")
 
         primaryConstructor(buildConstructor {
-            definition.fields.forEach {
-                val fieldTypeName = OUTPUT_TRANSFORM.parameterizedBy(it.type.typeName(environment.packageName))
+            for (field in nonExtensionFields) {
+                val fieldTypeName = OUTPUT_TRANSFORM.parameterizedBy(field.type.typeName(environment.packageName))
 
-                addParameter(ParameterSpec.builder(it.name, fieldTypeName).build())
-                addProperty(PropertySpec.builder(it.name, fieldTypeName).initializer(it.name).build())
+                addParameter(ParameterSpec.builder(field.name, fieldTypeName).build())
+                addProperty(PropertySpec.builder(field.name, fieldTypeName).initializer(field.name).build())
             }
         })
 
@@ -79,7 +77,7 @@ internal fun OutputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec
                 add("return·%T(\n", generatedType)
                 indent()
 
-                for (field in definition.fields) {
+                for (field in nonExtensionFields) {
                     add("%L·=·", field.name)
 
                     // Primitives and simple types can be retrieved automatically
@@ -109,7 +107,7 @@ internal fun OutputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec
 
             addParameter(MapperProjectionSetParameter, DATA_FETCHING_SELECTION_FIELD_SET)
             beginControlFlow("return·buildList·{")
-            for (field in definition.fields) {
+            for (field in nonExtensionFields) {
                 addStatement("addIfPresent(%L, %L)", field.name, MapperProjectionSetParameter)
             }
             endControlFlow()
