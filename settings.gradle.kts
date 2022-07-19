@@ -26,8 +26,8 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "graphql-kotlin"
+rootProject.name = "wireframe"
 
-include(":graphql-kotlin-ktor")
-include(":graphql-kotlin-compiler")
-include(":graphql-kotlin-plugin")
+include(":compiler")
+include(":ktor-plugin")
+include(":gradle-plugin")
