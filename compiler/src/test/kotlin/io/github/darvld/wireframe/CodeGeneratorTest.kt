@@ -46,6 +46,12 @@ class CodeGeneratorTest {
             extend type User {
                 "The age of the user"
                 age: Int!
+                
+                surname: String
+            }
+            
+            extend type User {
+                dni: String
             }
             
             extend type Query {

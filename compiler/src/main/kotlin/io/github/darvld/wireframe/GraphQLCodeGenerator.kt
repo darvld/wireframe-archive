@@ -103,8 +103,8 @@ public class GraphQLCodeGenerator {
                 yield(enum.buildSpec().pack(packageName))
             }
 
-            for ((routeKind, routes) in routeHandlers.groupBy(RouteData::operation)) {
-                yield(buildFile(routeKind.outputFileName) {
+            for ((filename, routes) in routeHandlers.groupBy { it.operation.outputFileName }) {
+                yield(buildFile(filename) {
                     for (route in routes) addFunction(route.buildSpec(environment))
                 })
             }
