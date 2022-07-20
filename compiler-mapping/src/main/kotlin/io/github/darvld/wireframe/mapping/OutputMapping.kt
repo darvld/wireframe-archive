@@ -40,7 +40,6 @@ internal fun buildOutputMapper(
         val nonExtensionFields = definition.fields.filter { it !in extensionFields }
 
         primaryConstructor(buildConstructor {
-
             for (field in nonExtensionFields) {
                 val fieldTypeName = OUTPUT_TRANSFORM.parameterizedBy(environment.typeNameFor(field.type))
 
@@ -70,7 +69,7 @@ internal fun buildOutputMapper(
                     // By default, use the passed argument, otherwise attempt to extract it from the source
                     val artificialParameter = ParameterSpec.builder(
                         name = field.name + MapperOptionalParameterSuffix,
-                        type = environment.typeNameFor(field.type)
+                        type = environment.typeNameFor(field.type).nullable()
                     ).defaultValue("null").build()
 
                     addParameter(artificialParameter)
