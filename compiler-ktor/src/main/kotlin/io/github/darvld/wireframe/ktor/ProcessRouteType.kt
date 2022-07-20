@@ -22,7 +22,7 @@ internal fun processRoutes(definition: GraphQLObjectType, environment: Processin
     for (route in routes) environment.output(
         packageName = environment.basePackage.subpackage("routing"),
         fileName = operation.outputFileName,
-        spec = buildRoute(generateQueryName(definition.name, route.name), operation, route, environment)
+        spec = buildRoute(generateQueryName(definition, route), operation, route, environment)
     )
 }
 
