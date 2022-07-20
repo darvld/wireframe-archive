@@ -24,6 +24,7 @@ gradlePlugin {
 dependencies {
     implementation(projects.compilerCore)
     implementation(libs.kotlin.plugin)
+    implementation(libs.formatting)
 }
 
 tasks.withType<KotlinCompile> {

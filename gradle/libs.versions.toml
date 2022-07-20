@@ -7,6 +7,7 @@ kotlin-plugin = { module = "org.jetbrains.kotlin:kotlin-gradle-plugin", version.
 kotlinpoet = { module = "com.squareup:kotlinpoet", version = "1.12.0" }
 
 graphql-java = { module = "com.graphql-java:graphql-java", version = "18.2" }
+formatting = { module = "com.facebook:ktfmt", version = "0.39" }
 
 ktor-server-core = { module = "io.ktor:ktor-server-core", version.ref = "ktor" }
 ktor-server-serialization = { module = "io.ktor:ktor-serialization-kotlinx-json", version.ref = "ktor" }

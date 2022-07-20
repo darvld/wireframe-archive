@@ -1,5 +1,7 @@
 package io.github.darvld.wireframe
 
+import com.facebook.ktfmt.format.Formatter
+import com.facebook.ktfmt.format.FormattingOptions
 import org.gradle.api.DefaultTask
 import org.gradle.api.file.ConfigurableFileCollection
 import org.gradle.api.file.DirectoryProperty
@@ -55,7 +57,9 @@ abstract class GenerateWiringTask : DefaultTask() {
                 packageName = sourcePackageName
             )
         }
+
         val generator = WireframeCompiler()
+        val outputPath = outputDir.asFile.get().toPath()
 
         generator.process(
             project = projectName.get(),
@@ -63,7 +67,13 @@ abstract class GenerateWiringTask : DefaultTask() {
             sources,
             plugins
         ).forEach {
-            it.writeTo(outputDir.asFile.get().toPath())
+            it.writeTo(outputPath)
+        }
+
+        val options = FormattingOptions(FormattingOptions.Style.DROPBOX)
+        outputPath.toFile().walk().asSequence().filter { it.isFile }.forEach {
+            val code = Formatter.format(options, it.readText())
+            it.writeText(code)
         }
     }
 }
