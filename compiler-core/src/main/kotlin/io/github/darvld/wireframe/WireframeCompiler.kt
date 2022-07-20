@@ -62,11 +62,13 @@ public class WireframeCompiler {
             /* wiring = */ RuntimeWiring.newRuntimeWiring().build()
         )
 
+        for (plugin in allPlugins) plugin.beforeProcessing(environment)
         for (element in schema.allTypesAsList.asSequence()) {
             if (element.isInternalType()) continue
 
             allPlugins.forEach { it.processType(element, environment) }
         }
+        for (plugin in allPlugins) plugin.afterProcessing(environment)
 
         return environment.getOutputs()
     }
