@@ -70,7 +70,7 @@ private fun ProcessingEnvironment.buildListUnwrapper(
     }
 
     return buildCodeBlock {
-        val finalType = typeNameFor(type)
+        val finalType = typeNameFor(type).nonNullable()
 
         if (type.isNullable) add("%L?.let·{ %T(it) }", receiver, finalType)
         else add("%T(%L)", finalType, receiver)
