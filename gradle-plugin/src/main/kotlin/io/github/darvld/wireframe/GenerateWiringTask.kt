@@ -7,9 +7,9 @@ import org.gradle.api.provider.Property
 import org.gradle.api.tasks.*
 import org.gradle.work.Incremental
 import org.gradle.work.InputChanges
-import java.io.File
 import java.net.URLClassLoader
 import java.util.*
+import kotlin.io.path.pathString
 
 abstract class GenerateWiringTask : DefaultTask() {
     @get:Incremental
@@ -19,6 +19,9 @@ abstract class GenerateWiringTask : DefaultTask() {
 
     @get:OutputDirectory
     abstract val outputDir: DirectoryProperty
+
+    @get:Input
+    abstract val projectName: Property<String>
 
     @get:Input
     abstract val packageName: Property<String>
@@ -35,13 +38,31 @@ abstract class GenerateWiringTask : DefaultTask() {
             /* parent = */ WireframeCompilerPlugin::class.java.classLoader
         )
 
-        val plugins = ServiceLoader.load(WireframeCompilerPlugin::class.java, pluginLoader).toList()
+        val plugins = ServiceLoader.load(WireframeCompilerPlugin::class.java, pluginLoader)
 
-        val sources = sourcesRoot.asFileTree.filter { it.extension == "graphqls" }.map(File::readText)
+        val basePackage = packageName.get()
+        val rootPath = sourcesRoot.get().asFile.toPath()
+
+        val sources = sourcesRoot.asFileTree.filter { it.extension == "graphqls" }.map {
+            val sourcePackageName = rootPath.relativize(it.toPath()).pathString
+                .removeSuffix(".graphqls")
+                .replace(Regex("""[/\\]"""), ".")
+                .removePrefix(basePackage)
+
+            WireframeCompiler.Source(
+                sdl = it.readText(),
+                fileName = it.name,
+                packageName = sourcePackageName
+            )
+        }
         val generator = WireframeCompiler()
-        val environment = generator.analyze(packageName.getOrElse(""), sources)
 
-        generator.generate(environment, plugins).forEach {
+        generator.process(
+            project = projectName.get(),
+            basePackage = basePackage,
+            sources,
+            plugins
+        ).forEach {
             it.writeTo(outputDir.asFile.get().toPath())
         }
     }

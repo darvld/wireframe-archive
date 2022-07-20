@@ -6,15 +6,14 @@ import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import com.squareup.kotlinpoet.PropertySpec
 import com.squareup.kotlinpoet.TypeSpec
 import graphql.schema.GraphQLObjectType
+import io.github.darvld.wireframe.ProcessingEnvironment
 import io.github.darvld.wireframe.extensions.*
 import io.github.darvld.wireframe.mapping.OutputNames.MapperMapFunctionName
 import io.github.darvld.wireframe.mapping.OutputNames.MapperOptionalParameterSuffix
 import io.github.darvld.wireframe.mapping.OutputNames.MapperProjectFunctionName
 import io.github.darvld.wireframe.mapping.OutputNames.MapperProjectionSetParameter
 import io.github.darvld.wireframe.mapping.OutputNames.MapperSourceParameter
-import io.github.darvld.wireframe.model.GenerationEnvironment
-import io.github.darvld.wireframe.model.OutputDTO
-import io.github.darvld.wireframe.model.nonExtensionFields
+import io.github.darvld.wireframe.mapping.extensions.*
 
 private object OutputNames {
     const val MapperMapFunctionName = "map"
@@ -25,20 +24,25 @@ private object OutputNames {
     const val MapperProjectionSetParameter = "selectionSet"
 }
 
-/**Generates a [TypeSpec] describing an [OutputMapper] for this DTO. This allows to translate to the business layer's
- * output from, for example, a MongoDB document structure.*/
-internal fun OutputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec {
-    val mapperName = ClassName(generatedType.packageName, mapperName())
-
-    return buildClass(mapperName) {
+internal fun buildOutputMapper(
+    mapperClass: ClassName,
+    mappingTarget: ClassName,
+    definition: GraphQLObjectType,
+    environment: ProcessingEnvironment,
+): TypeSpec {
+    return buildClass(mapperClass) {
         superclass(OUTPUT_MAPPER)
 
         markAsGenerated()
-        addKdoc("An [OutputMapper] that can be used to create to [$name] instances from other formats.")
+        addKdoc("An [OutputMapper] that can be used to create to [${mappingTarget.simpleName}] instances from other formats.")
+
+        val extensionFields = definition.getExtensionFields().toList()
+        val nonExtensionFields = definition.fields.filter { it !in extensionFields }
 
         primaryConstructor(buildConstructor {
+
             for (field in nonExtensionFields) {
-                val fieldTypeName = OUTPUT_TRANSFORM.parameterizedBy(field.type.typeName(environment.packageName))
+                val fieldTypeName = OUTPUT_TRANSFORM.parameterizedBy(environment.typeNameFor(field.type))
 
                 addParameter(ParameterSpec.builder(field.name, fieldTypeName).build())
                 addProperty(PropertySpec.builder(field.name, fieldTypeName).initializer(field.name).build())
@@ -46,11 +50,11 @@ internal fun OutputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec
         })
 
         addFunction(buildFunction(MapperMapFunctionName) {
-            returns(generatedType)
+            returns(mappingTarget)
             addParameter(MapperSourceParameter, MAPPING_SOURCE)
 
             addCode {
-                add("return·%T(\n", generatedType)
+                add("return·%T(\n", mappingTarget)
                 indent()
 
                 for (field in nonExtensionFields) {
@@ -66,7 +70,7 @@ internal fun OutputDTO.buildMapper(environment: GenerationEnvironment): TypeSpec
                     // By default, use the passed argument, otherwise attempt to extract it from the source
                     val artificialParameter = ParameterSpec.builder(
                         name = field.name + MapperOptionalParameterSuffix,
-                        type = field.type.typeName(environment.packageName).nullable()
+                        type = environment.typeNameFor(field.type)
                     ).defaultValue("null").build()
 
                     addParameter(artificialParameter)

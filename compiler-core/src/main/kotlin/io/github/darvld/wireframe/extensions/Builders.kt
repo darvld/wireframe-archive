@@ -2,8 +2,10 @@
 
 package io.github.darvld.wireframe.extensions
 
-import com.squareup.kotlinpoet.*
-import io.github.darvld.wireframe.model.GenerationEnvironment
+import com.squareup.kotlinpoet.ClassName
+import com.squareup.kotlinpoet.CodeBlock
+import com.squareup.kotlinpoet.FunSpec
+import com.squareup.kotlinpoet.TypeSpec
 
 public inline fun buildEnum(className: ClassName, builder: TypeSpec.Builder.() -> Unit): TypeSpec {
     return TypeSpec.enumBuilder(className).apply(builder).build()
@@ -31,17 +33,4 @@ public inline fun TypeSpec.Builder.markAsGenerated() {
 
 public inline fun FunSpec.Builder.markAsGenerated() {
     addAnnotation(GENERATED)
-}
-
-public inline fun GenerationEnvironment.buildFile(
-    fileName: String,
-    subpackage: String = "",
-    builder: FileSpec.Builder.() -> Unit,
-): FileSpec {
-    val finalPackageName = packageName + subpackage.takeIf { it.isNotEmpty() }?.let { ".$it" }.orEmpty()
-    return FileSpec.builder(finalPackageName, fileName).apply(builder).build()
-}
-
-public fun TypeSpec.pack(packageName: String): FileSpec {
-    return FileSpec.get(packageName, this)
 }

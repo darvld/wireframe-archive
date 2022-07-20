@@ -6,11 +6,17 @@ import org.junit.jupiter.api.Test
 class CodeGeneratorTest {
     @Test
     fun `test generation`() {
-        val sources = listOf(SampleSchema)
+        val sources = listOf(WireframeCompiler.Source(
+            sdl = SampleSchema,
+            packageName = "io.github.darvld.wireframe.samples",
+        ))
 
         val generator = WireframeCompiler()
-        val data = generator.analyze(packageName = "", sources)
-        val output = generator.generate(data)
+        val output = generator.process(
+            project = "Test",
+            basePackage = "com.example.test",
+            sources = sources,
+        )
 
         output.forEach {
             println("====================================================")

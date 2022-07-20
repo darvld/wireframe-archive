@@ -41,7 +41,9 @@ class WireframePlugin : Plugin<Project> {
             // Register the code generation task
             project.tasks.register(taskName, GenerateWiringTask::class.java) { task ->
                 task.description = "Generate kotlin sources for GraphQL definitions."
-                task.packageName.set(wiring.packageName)
+
+                task.projectName.set(wiring.projectName.orElse(project.name))
+                task.packageName.set(wiring.packageName.orElse(project.group.toString()))
 
                 task.pluginJars.setFrom(configuration)
 

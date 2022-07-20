@@ -1,24 +1,24 @@
-package io.github.darvld.wireframe.generation
+package io.github.darvld.wireframe.ktor.extensions
 
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
 import graphql.schema.*
+import io.github.darvld.wireframe.ProcessingEnvironment
 import io.github.darvld.wireframe.extensions.*
-import io.github.darvld.wireframe.model.GenerationEnvironment
 
 /**Builds a [CodeBlock] to extract a field from a target container (e.g. a map or a GraphQL request), and map them
  * from graphql-java's map representation to the corresponding input DTO or primitive type.*/
-public fun GenerationEnvironment.buildFieldExtractor(
+public fun ProcessingEnvironment.buildFieldExtractor(
     extractor: (TypeName) -> CodeBlock,
     fieldType: GraphQLType,
 ): CodeBlock {
-    val fieldTypeName = fieldType.typeName(packageName)
+    val fieldTypeName = typeNameFor(fieldType)
 
     // Simple types can be extracted using a type cast even if they are wrapped in lists
     if (fieldType.unwrapCompletely() !is GraphQLInputObjectType)
         return extractor(fieldTypeName)
 
-    val unwrappedFieldTypeName = fieldType.unwrapCompletely().typeName(packageName).nonNullable()
+    val unwrappedFieldTypeName = typeNameFor(fieldType.unwrapCompletely()).nonNullable()
     val sourceTypeName = fieldType.replaceObjectTypes()
 
     // Lists need to be unwrapped manually when the hierarchy contains a DTO
@@ -56,7 +56,7 @@ private fun GraphQLType.replaceObjectTypes(): TypeName {
 
 /**Unwraps a list containing DTOs at some point in the hierarchy using [List.map].
  *  Multiple nested lists are automatically mapped as well.*/
-private fun GenerationEnvironment.buildListUnwrapper(
+private fun ProcessingEnvironment.buildListUnwrapper(
     type: GraphQLType,
     receiver: String = "",
 ): CodeBlock {
@@ -70,7 +70,7 @@ private fun GenerationEnvironment.buildListUnwrapper(
     }
 
     return buildCodeBlock {
-        val finalType = type.typeName(packageName).nonNullable()
+        val finalType = typeNameFor(type)
 
         if (type.isNullable) add("%L?.let·{ %T(it) }", receiver, finalType)
         else add("%T(%L)", finalType, receiver)

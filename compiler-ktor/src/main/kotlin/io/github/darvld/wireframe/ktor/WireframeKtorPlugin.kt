@@ -1,22 +1,20 @@
 package io.github.darvld.wireframe.ktor
 
+import graphql.schema.GraphQLInputObjectType
+import graphql.schema.GraphQLNamedType
+import graphql.schema.GraphQLObjectType
+import io.github.darvld.wireframe.ProcessingEnvironment
 import io.github.darvld.wireframe.WireframeCompilerPlugin
-import io.github.darvld.wireframe.WireframeCompilerPlugin.Output
-import io.github.darvld.wireframe.extensions.buildFile
-import io.github.darvld.wireframe.model.GenerationEnvironment
 
 public class WireframeKtorPlugin : WireframeCompilerPlugin {
-    override fun processEnvironment(environment: GenerationEnvironment): Sequence<Output> = sequence {
-        for (input in environment.inputTypes) {
-            yield(environment.buildFile(input.name + "Decoder") {
-                addFunction(input.buildDecoder(environment))
-            })
+    override fun processType(type: GraphQLNamedType, environment: ProcessingEnvironment) {
+        if (type is GraphQLObjectType) {
+            processRoutes(type, environment)
+            return
         }
 
-        for ((filename, routes) in environment.routeHandlers.groupBy { it.operation.outputFileName }) {
-            yield(environment.buildFile(filename) {
-                for (route in routes) addFunction(route.buildSpec(environment))
-            })
+        if (type is GraphQLInputObjectType) {
+            processInputType(type, environment)
         }
-    }.map(::Output)
+    }
 }

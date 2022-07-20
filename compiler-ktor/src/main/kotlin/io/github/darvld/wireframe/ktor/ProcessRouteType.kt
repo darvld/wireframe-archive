@@ -2,20 +2,37 @@ package io.github.darvld.wireframe.ktor
 
 import com.squareup.kotlinpoet.*
 import com.squareup.kotlinpoet.ParameterizedTypeName.Companion.parameterizedBy
+import graphql.schema.GraphQLFieldDefinition
+import graphql.schema.GraphQLObjectType
+import io.github.darvld.wireframe.ProcessingEnvironment
 import io.github.darvld.wireframe.execution.GraphQLCall
 import io.github.darvld.wireframe.extensions.*
-import io.github.darvld.wireframe.generation.buildFieldExtractor
-import io.github.darvld.wireframe.ktor.RouteNames.HandlerParameter
-import io.github.darvld.wireframe.model.GenerationEnvironment
-import io.github.darvld.wireframe.model.RouteData
+import io.github.darvld.wireframe.ktor.extensions.DATA_FETCHER_RESULT
+import io.github.darvld.wireframe.ktor.extensions.DSL_MARKER
+import io.github.darvld.wireframe.ktor.extensions.buildFieldExtractor
+import io.github.darvld.wireframe.ktor.extensions.generateQueryName
+import io.github.darvld.wireframe.output
 import io.github.darvld.wireframe.routing.GraphQLRoute
 
-private object RouteNames {
-    const val HandlerParameter = "routeHandler"
+private const val HandlerParameter = "routeHandler"
+
+internal fun processRoutes(definition: GraphQLObjectType, environment: ProcessingEnvironment) {
+    val operation = GraphQLOperation.operationFor(definition)
+    val routes = definition.getRouteFields(operation)
+
+    for (route in routes) environment.output(
+        packageName = environment.basePackage.subpackage("routing"),
+        fileName = operation.outputFileName,
+        spec = buildRoute(generateQueryName(definition.name, route.name), operation, route, environment)
+    )
 }
 
-/**Builds a handler extension for this route.*/
-internal fun RouteData.buildSpec(environment: GenerationEnvironment): FunSpec = buildFunction(name) {
+internal fun buildRoute(
+    name: String,
+    operation: GraphQLOperation,
+    definition: GraphQLFieldDefinition,
+    environment: ProcessingEnvironment,
+): FunSpec = buildFunction(name) {
     receiver(GraphQLRoute::class.asTypeName())
 
     markAsGenerated()

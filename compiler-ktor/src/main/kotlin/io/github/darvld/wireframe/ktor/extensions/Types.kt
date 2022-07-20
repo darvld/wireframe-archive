@@ -1,4 +1,4 @@
-package io.github.darvld.wireframe.ktor
+package io.github.darvld.wireframe.ktor.extensions
 
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.asClassName

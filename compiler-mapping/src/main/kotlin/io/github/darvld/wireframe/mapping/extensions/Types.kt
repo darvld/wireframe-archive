@@ -1,8 +1,9 @@
-package io.github.darvld.wireframe.mapping
+package io.github.darvld.wireframe.mapping.extensions
 
 import com.squareup.kotlinpoet.ClassName
 import com.squareup.kotlinpoet.asClassName
 import graphql.schema.DataFetchingFieldSelectionSet
+import io.github.darvld.wireframe.mapping.*
 
 public val INPUT_MAPPER: ClassName = InputMapper::class.asClassName()
 public val INPUT_TRANSFORM: ClassName = InputTransform::class.asClassName()
