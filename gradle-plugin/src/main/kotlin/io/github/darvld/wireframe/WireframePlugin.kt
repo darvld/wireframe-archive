@@ -8,9 +8,13 @@ import org.jetbrains.kotlin.gradle.dsl.kotlinExtension
 
 @Suppress("unused")
 class WireframePlugin : Plugin<Project> {
+    private companion object {
+        const val TaskGroup = "wiring"
+    }
+
     override fun apply(target: Project) {
         configureExtension(target)
-        configureSourceSets(target)
+        configureWiringTask(target)
     }
 
     private fun configureExtension(project: Project) {
@@ -19,7 +23,7 @@ class WireframePlugin : Plugin<Project> {
         wiring.packageName.set(project.group.toString())
     }
 
-    private fun configureSourceSets(project: Project) {
+    private fun configureWiringTask(project: Project) {
         val configuration = project.configurations.create("wireframe") {
             it.isVisible = false
             it.isCanBeConsumed = false
@@ -39,7 +43,11 @@ class WireframePlugin : Plugin<Project> {
             val outputDir = project.buildDir.resolve("generated/kotlin/${sourceSet.name}")
 
             // Register the code generation task
-            project.tasks.register(taskName, GenerateWiringTask::class.java) { task ->
+            project.tasks.register(
+                /* name = */ taskName,
+                /* type = */ GenerateWiringTask::class.java
+            ) { task ->
+                task.group = TaskGroup
                 task.description = "Generate kotlin sources for GraphQL definitions."
 
                 task.projectName.set(wiring.projectName.orElse(project.name))
