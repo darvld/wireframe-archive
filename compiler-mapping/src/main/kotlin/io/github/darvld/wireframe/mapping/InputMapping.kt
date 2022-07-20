@@ -35,7 +35,8 @@ internal fun buildInputMapper(
 
         primaryConstructor(buildConstructor {
             for (field in definition.fields) {
-                val fieldTypeName = INPUT_TRANSFORM.parameterizedBy(environment.typeNameFor(field.type))
+                // Transform fields are always non-nullable, nullable DTO fields are handled in the `map` method
+                val fieldTypeName = INPUT_TRANSFORM.parameterizedBy(environment.typeNameFor(field.type).nonNullable())
 
                 addParameter(ParameterSpec.builder(field.name, fieldTypeName).build())
                 addProperty(PropertySpec.builder(field.name, fieldTypeName).initializer(field.name).build())
@@ -48,7 +49,11 @@ internal fun buildInputMapper(
 
             beginControlFlow("return·with(%L)·{", MapperTargetParameter)
             definition.fields.forEach {
-                addStatement("set(%L, %L.%L)", it.name, MapperInputParameter, it.name)
+                if (it.type.isNullable) {
+                    addStatement("%L.%L?.let·{ set(%L, it) }", MapperInputParameter, it.name, it.name)
+                } else {
+                    addStatement("set(%L, %L.%L)", it.name, MapperInputParameter, it.name)
+                }
             }
             endControlFlow()
         })
