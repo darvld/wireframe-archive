@@ -7,9 +7,8 @@ import graphql.schema.GraphQLObjectType
 import io.github.darvld.wireframe.ProcessingEnvironment
 import io.github.darvld.wireframe.execution.GraphQLCall
 import io.github.darvld.wireframe.extensions.*
+import io.github.darvld.wireframe.ktor.extensions.*
 import io.github.darvld.wireframe.ktor.extensions.DATA_FETCHER_RESULT
-import io.github.darvld.wireframe.ktor.extensions.DSL_MARKER
-import io.github.darvld.wireframe.ktor.extensions.buildFieldExtractor
 import io.github.darvld.wireframe.ktor.extensions.generateQueryName
 import io.github.darvld.wireframe.output
 import io.github.darvld.wireframe.routing.GraphQLRoute
@@ -36,7 +35,7 @@ internal fun buildRoute(
     receiver(GraphQLRoute::class.asTypeName())
 
     markAsGenerated()
-    addAnnotation(DSL_MARKER)
+    addAnnotation(environment.dslMarker())
     addKdoc(definition.description.orEmpty())
 
     addParameter(
