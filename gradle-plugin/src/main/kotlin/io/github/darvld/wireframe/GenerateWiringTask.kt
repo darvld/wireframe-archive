@@ -14,6 +14,10 @@ import java.util.*
 import kotlin.io.path.pathString
 
 abstract class GenerateWiringTask : DefaultTask() {
+    private companion object {
+        val extensionRegex = Regex("graphqls?")
+    }
+
     @get:Incremental
     @get:PathSensitive(PathSensitivity.NAME_ONLY)
     @get:InputDirectory
@@ -45,9 +49,9 @@ abstract class GenerateWiringTask : DefaultTask() {
         val basePackage = packageName.get()
         val rootPath = sourcesRoot.get().asFile.toPath()
 
-        val sources = sourcesRoot.asFileTree.filter { it.extension == "graphqls" }.map {
+        val sources = sourcesRoot.asFileTree.filter { extensionRegex.matches(it.extension) }.map {
             val sourcePackageName = rootPath.relativize(it.toPath()).pathString
-                .removeSuffix(".graphqls")
+                .substringBeforeLast(".")
                 .replace(Regex("""[/\\]"""), ".")
                 .removePrefix(basePackage)
 
