@@ -17,6 +17,8 @@ java {
 gradlePlugin {
     plugins.create("Wireframe") {
         id = "io.github.darvld.wireframe"
+        displayName = "Wireframe Gradle Plugin"
+        description = "Helper plugin for Wireframe, a GraphQL server library for Kotlin."
         implementationClass = "io.github.darvld.wireframe.WireframePlugin"
     }
 }

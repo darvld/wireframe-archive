@@ -11,9 +11,11 @@ pluginManagement {
     }
 
     val kotlinVersion: String by settings
+    val nexusPluginVersion: String by settings
 
     plugins {
         kotlin("jvm").version(kotlinVersion)
+        id("io.github.gradle-nexus.publish-plugin").version(nexusPluginVersion)
     }
 }
 
