@@ -22,7 +22,7 @@ public fun ProcessingEnvironment.buildFieldExtractor(
     val sourceTypeName = fieldType.replaceObjectTypes()
 
     // Lists need to be unwrapped manually when the hierarchy contains a DTO
-    if (fieldType is GraphQLList) return CodeBlock.of(
+    if (fieldType.unwrapNonNull() is GraphQLList) return CodeBlock.of(
         format = "(%L)%L",
         extractor(sourceTypeName),
         buildListUnwrapper(fieldType)
