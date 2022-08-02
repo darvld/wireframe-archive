@@ -30,3 +30,16 @@ public fun GraphQLObjectType.getExtensionFields(): Sequence<GraphQLFieldDefiniti
 
     return fields.asSequence().filter { it.name in extensions }
 }
+
+public fun GraphQLInterfaceType.getExtensionFields(): Sequence<GraphQLFieldDefinition> {
+    val extensions = extensionDefinitions.flatMap { extension ->
+        extension.fieldDefinitions.map { it.name!! }
+    }
+
+    return fields.asSequence().filter { it.name in extensions }
+}
+
+@Suppress("UNCHECKED_CAST")
+public fun GraphQLImplementingType.interfaces(): Sequence<GraphQLInterfaceType> {
+    return interfaces.asSequence().filter { it is GraphQLInterfaceType } as Sequence<GraphQLInterfaceType>
+}

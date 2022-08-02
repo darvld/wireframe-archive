@@ -33,6 +33,16 @@ class CodeGeneratorTest {
         @Language("GraphQL")
         @Suppress("GraphQLUnresolvedReference")
         const val SampleSchema = """
+            interface Media {
+                url: String!
+            }
+            
+            type Image implements Media {
+                url: String!
+                width: Int!
+                height: Int!
+            }
+            
             "A sample enum."
             enum Status {
                 On,

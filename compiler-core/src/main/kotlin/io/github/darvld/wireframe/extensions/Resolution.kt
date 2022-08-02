@@ -1,5 +1,3 @@
-@file:Suppress("NOTHING_TO_INLINE")
-
 package io.github.darvld.wireframe.extensions
 
 import com.squareup.kotlinpoet.*
@@ -15,7 +13,7 @@ public fun ProcessingEnvironment.idTypeAlias(): ClassName {
 }
 
 public fun generateNameFor(type: GraphQLNamedType): String = when (type) {
-    is GraphQLEnumType -> type.name
+    is GraphQLEnumType, is GraphQLInterfaceType -> type.name
     else -> "${type.name}DTO"
 }
 

@@ -3,6 +3,7 @@ package io.github.darvld.wireframe.routing
 import graphql.schema.DataFetcher
 import graphql.schema.TypeResolver
 import graphql.schema.idl.RuntimeWiring
+import graphql.schema.idl.SchemaDirectiveWiring
 import io.github.darvld.wireframe.GraphQLContext
 import io.github.darvld.wireframe.execution.GraphQLCall
 import io.github.darvld.wireframe.execution.GraphQLHandler
@@ -17,6 +18,9 @@ public interface GraphQLRoute {
 
     @GraphQLDSL
     public fun resolver(typeName: String, resolver: TypeResolver)
+
+    @GraphQLDSL
+    public fun directive(directiveName: String, directiveWiring: SchemaDirectiveWiring)
 }
 
 @GraphQLDSL
@@ -41,6 +45,10 @@ internal value class GraphQLRouteBuilder(private val wiring: RuntimeWiring.Build
         wiring.type(typeName) {
             it.typeResolver(resolver)
         }
+    }
+
+    override fun directive(directiveName: String, directiveWiring: SchemaDirectiveWiring) {
+        wiring.directive(directiveName, directiveWiring)
     }
 
     private fun suspendingDataFetcher(block: GraphQLHandler): DataFetcher<Any> {

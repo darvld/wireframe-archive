@@ -15,6 +15,10 @@ public inline fun buildClass(className: ClassName, builder: TypeSpec.Builder.() 
     return TypeSpec.classBuilder(className).apply(builder).build()
 }
 
+public inline fun buildInterface(className: ClassName, builder: TypeSpec.Builder.() -> Unit): TypeSpec {
+    return TypeSpec.interfaceBuilder(className).apply(builder).build()
+}
+
 public inline fun buildFunction(name: String, builder: FunSpec.Builder.() -> Unit): FunSpec {
     return FunSpec.builder(name).apply(builder).build()
 }
